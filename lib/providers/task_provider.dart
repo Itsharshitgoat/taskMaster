@@ -60,6 +60,18 @@ class TaskProvider with ChangeNotifier {
     return _filterSearch(list);
   }
 
+  int get weeklyEfficiency {
+    final now = DateTime.now();
+    final last7Days = _tasks.where((t) => t.isCompleted && now.difference(t.createdAt).inDays <= 7).length;
+    final previous7Days = _tasks.where((t) => t.isCompleted && now.difference(t.createdAt).inDays > 7 && now.difference(t.createdAt).inDays <= 14).length;
+
+    if (previous7Days == 0) {
+      return last7Days > 0 ? 100 : 0;
+    }
+
+    return (((last7Days - previous7Days) / previous7Days) * 100).round();
+  }
+
   Future<void> loadTasks() async {
     _tasks = await DatabaseHelper.instance.readAllTasks();
     notifyListeners();

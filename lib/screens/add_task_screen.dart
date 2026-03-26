@@ -4,6 +4,8 @@ import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import '../models/task.dart';
 import '../providers/task_provider.dart';
+import '../providers/user_provider.dart';
+import '../widgets/custom_date_picker.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final Task? task;
@@ -18,9 +20,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   late TextEditingController _titleController;
   late TextEditingController _descController;
   DateTime? _selectedDate;
-  String _selectedCategory = 'Work';
-
-  final List<String> _categories = ['Work', 'Studio', 'Personal'];
+  String? _selectedCategory;
 
   @override
   void initState() {
@@ -28,7 +28,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     _titleController = TextEditingController(text: widget.task?.title ?? '');
     _descController = TextEditingController(text: widget.task?.description ?? '');
     _selectedDate = widget.task?.dueDate;
-    _selectedCategory = widget.task?.category ?? 'Work';
+    _selectedCategory = widget.task?.category;
   }
 
   @override
@@ -49,7 +49,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       isCompleted: widget.task?.isCompleted ?? false,
       createdAt: widget.task?.createdAt ?? DateTime.now(),
       dueDate: _selectedDate,
-      category: _selectedCategory,
+      category: _selectedCategory ?? context.read<UserProvider>().categories.first,
     );
 
     if (widget.task == null) {
@@ -121,34 +121,79 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           const SizedBox(height: 24),
           Text('CATEGORY', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: hintColor)),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: [
-              ..._categories.map((category) => ChoiceChip(
-                label: Text(category),
-                selected: _selectedCategory == category,
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) _selectedCategory = category;
-                  });
-                },
-                selectedColor: isDark ? const Color(0xFF2E6562) : const Color(0xFFD4EAE8),
-                backgroundColor: isDark ? const Color(0xFF333333) : Colors.white.withValues(alpha: 0.5),
-                labelStyle: TextStyle(
-                  color: _selectedCategory == category
-                      ? (isDark ? Colors.white : const Color(0xFF2E6562))
-                      : textColor,
-                  fontWeight: FontWeight.w500,
-                ),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
-              )),
-              ActionChip(
-                label: Icon(Icons.add, size: 18, color: textColor),
-                onPressed: () {},
-                backgroundColor: isDark ? const Color(0xFF333333) : Colors.white.withValues(alpha: 0.5),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
-              )
-            ],
+          Consumer<UserProvider>(
+            builder: (context, userProvider, child) {
+              final categories = userProvider.categories;
+              if (_selectedCategory == null && categories.isNotEmpty) {
+                _selectedCategory = categories.first;
+              }
+              return Wrap(
+                spacing: 8,
+                children: [
+                  ...categories.map((category) => ChoiceChip(
+                    label: Text(category),
+                    selected: _selectedCategory == category,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) _selectedCategory = category;
+                      });
+                    },
+                    selectedColor: isDark ? const Color(0xFF2E6562) : const Color(0xFFD4EAE8),
+                    backgroundColor: isDark ? const Color(0xFF333333) : Colors.white.withValues(alpha: 0.5),
+                    labelStyle: TextStyle(
+                      color: _selectedCategory == category
+                          ? (isDark ? Colors.white : const Color(0xFF2E6562))
+                          : textColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
+                  )),
+                  ActionChip(
+                    label: Icon(Icons.add, size: 18, color: textColor),
+                    onPressed: () {
+                      final controller = TextEditingController();
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            backgroundColor: bgColor,
+                            title: Text('Add Category', style: TextStyle(color: textColor)),
+                            content: TextField(
+                              controller: controller,
+                              style: TextStyle(color: textColor),
+                              decoration: InputDecoration(
+                                hintText: 'Category name',
+                                hintStyle: TextStyle(color: hintColor),
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('Cancel', style: TextStyle(color: hintColor)),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  if (controller.text.trim().isNotEmpty) {
+                                    userProvider.addCategory(controller.text.trim());
+                                    setState(() {
+                                      _selectedCategory = controller.text.trim();
+                                    });
+                                  }
+                                  Navigator.pop(context);
+                                },
+                                child: Text('Add', style: TextStyle(color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562))),
+                              )
+                            ],
+                          );
+                        }
+                      );
+                    },
+                    backgroundColor: isDark ? const Color(0xFF333333) : Colors.white.withValues(alpha: 0.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
+                  )
+                ],
+              );
+            }
           ),
           const SizedBox(height: 24),
           Container(
@@ -181,12 +226,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   value: _selectedDate != null,
                   onChanged: (val) async {
                     if (val) {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(2100),
-                      );
+                      final date = await showCustomDatePicker(context, initialDate: DateTime.now());
                       if (date != null) {
                         setState(() {
                           _selectedDate = date;

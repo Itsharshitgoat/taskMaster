@@ -4,6 +4,8 @@ class PrefsService {
   static const String THEME_KEY = "isDarkMode";
   static const String USER_NAME_KEY = "userName";
   static const String JOIN_DATE_KEY = "joinDate";
+  static const String PROFILE_IMAGE_KEY = "profileImage";
+  static const String CATEGORIES_KEY = "categories";
 
   Future<void> setDarkMode(bool isDark) async {
     final prefs = await SharedPreferences.getInstance();
@@ -34,5 +36,25 @@ class PrefsService {
       await prefs.setString(JOIN_DATE_KEY, joinDateStr);
     }
     return joinDateStr;
+  }
+
+  Future<void> setProfileImage(String path) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(PROFILE_IMAGE_KEY, path);
+  }
+
+  Future<String?> getProfileImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(PROFILE_IMAGE_KEY);
+  }
+
+  Future<void> setCategories(List<String> categories) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(CATEGORIES_KEY, categories);
+  }
+
+  Future<List<String>> getCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(CATEGORIES_KEY) ?? ['Work', 'Studio', 'Personal'];
   }
 }

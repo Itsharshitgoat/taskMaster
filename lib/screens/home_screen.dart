@@ -32,55 +32,80 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: 'Search tasks...',
-                  hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
-                  border: InputBorder.none,
-                ),
-                style: TextStyle(color: textColor),
-                onChanged: (val) {
-                  context.read<TaskProvider>().setSearchQuery(val);
-                },
-              )
-            : Text(
-                'Morning Briefing',
-                style: TextStyle(
-                  color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562),
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+        title: Text(
+          'Morning Briefing',
+          style: TextStyle(
+            color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562),
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                if (_isSearching) {
-                  _isSearching = false;
-                  _searchController.clear();
-                  context.read<TaskProvider>().setSearchQuery('');
-                } else {
-                  _isSearching = true;
-                }
-              });
-            },
-            child: Container(
-              margin: const EdgeInsets.only(right: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2A2A2A) : Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  SvgPicture.asset('assets/icons/search.svg', width: 16, height: 16, colorFilter: ColorFilter.mode(isDark ? Colors.white70 : Colors.black54, BlendMode.srcIn)),
-                  const SizedBox(width: 8),
-                  Text(_isSearching ? 'Cancel' : 'Search', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
-                ],
-              ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            width: _isSearching ? 200 : 100,
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF2A2A2A) : Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      if (_isSearching) {
+                        _isSearching = false;
+                        _searchController.clear();
+                        context.read<TaskProvider>().setSearchQuery('');
+                      } else {
+                        _isSearching = true;
+                      }
+                    });
+                  },
+                  child: SvgPicture.asset('assets/icons/search.svg', width: 16, height: 16, colorFilter: ColorFilter.mode(isDark ? Colors.white70 : Colors.black54, BlendMode.srcIn)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _isSearching
+                      ? TextField(
+                          controller: _searchController,
+                          autofocus: true,
+                          decoration: InputDecoration(
+                            hintText: 'Search...',
+                            hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 14),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          style: TextStyle(color: textColor, fontSize: 14),
+                          onChanged: (val) {
+                            context.read<TaskProvider>().setSearchQuery(val);
+                          },
+                        )
+                      : GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isSearching = true;
+                            });
+                          },
+                          child: Text('Search', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+                        ),
+                ),
+                if (_isSearching)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isSearching = false;
+                        _searchController.clear();
+                        context.read<TaskProvider>().setSearchQuery('');
+                      });
+                    },
+                    child: const Icon(Icons.close, size: 16, color: Colors.grey),
+                  ),
+              ],
             ),
           )
         ],
