@@ -69,11 +69,7 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        title: const Text('Account', style: TextStyle(color: Color(0xFF2E6562), fontSize: 22, fontWeight: FontWeight.bold)),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF2E6562)),
-          onPressed: () => Navigator.pop(context),
-        ),
+        title: Text('Account', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562), fontSize: 22, fontWeight: FontWeight.bold)),
       ),
       body: Consumer3<ThemeProvider, UserProvider, TaskProvider>(
         builder: (context, themeProvider, userProvider, taskProvider, child) {
@@ -83,7 +79,7 @@ class ProfileScreen extends StatelessWidget {
           final joinDateFormatted = DateFormat('MMMM yyyy').format(userProvider.joinDate);
 
           final isDark = themeProvider.isDarkMode;
-          final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+          final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
           final textColor = isDark ? Colors.white : Colors.black87;
           final weeklyEff = taskProvider.weeklyEfficiency;
           final effText = weeklyEff > 0 ? '+$weeklyEff%' : '$weeklyEff%';
@@ -97,8 +93,8 @@ class ProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      isDark ? const Color(0xFF3E3A35) : const Color(0xFFEBE6DF),
-                      isDark ? const Color(0xFF2A2722) : const Color(0xFFDED0C1),
+                      isDark ? const Color(0xFF1E293B) : const Color(0xFFEBE6DF),
+                      isDark ? const Color(0xFF334155) : const Color(0xFFDED0C1),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -213,7 +209,7 @@ class ProfileScreen extends StatelessWidget {
       width: 120,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFFAF8F5),
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFFAF8F5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: isDark ? Colors.transparent : Colors.grey.shade300),
       ),

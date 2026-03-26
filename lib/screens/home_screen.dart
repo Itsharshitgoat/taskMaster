@@ -4,11 +4,14 @@ import 'package:intl/intl.dart';
 import '../providers/task_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/task_item.dart';
+import '../widgets/search_bottom_sheet.dart';
 import 'add_task_screen.dart';
 import 'profile_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -19,9 +22,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     Future.microtask(() => context.read<TaskProvider>().loadTasks());
   }
-
-  bool _isSearching = false;
-  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -41,71 +41,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            width: _isSearching ? 200 : 100,
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF2A2A2A) : Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      if (_isSearching) {
-                        _isSearching = false;
-                        _searchController.clear();
-                        context.read<TaskProvider>().setSearchQuery('');
-                      } else {
-                        _isSearching = true;
-                      }
-                    });
-                  },
-                  child: SvgPicture.asset('assets/icons/search.svg', width: 16, height: 16, colorFilter: ColorFilter.mode(isDark ? Colors.white70 : Colors.black54, BlendMode.srcIn)),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _isSearching
-                      ? TextField(
-                          controller: _searchController,
-                          autofocus: true,
-                          decoration: InputDecoration(
-                            hintText: 'Search...',
-                            hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 14),
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                          style: TextStyle(color: textColor, fontSize: 14),
-                          onChanged: (val) {
-                            context.read<TaskProvider>().setSearchQuery(val);
-                          },
-                        )
-                      : GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _isSearching = true;
-                            });
-                          },
-                          child: Text('Search', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
-                        ),
-                ),
-                if (_isSearching)
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isSearching = false;
-                        _searchController.clear();
-                        context.read<TaskProvider>().setSearchQuery('');
-                      });
-                    },
-                    child: const Icon(Icons.close, size: 16, color: Colors.grey),
-                  ),
-              ],
+          GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const SearchBottomSheet(),
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  SvgPicture.asset('assets/icons/search.svg', width: 16, height: 16, colorFilter: ColorFilter.mode(isDark ? Colors.white70 : Colors.black54, BlendMode.srcIn)),
+                  const SizedBox(width: 8),
+                  Text('Search', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+                ],
+              ),
             ),
           )
         ],
@@ -126,8 +84,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Theme.of(context).brightness == Brightness.dark ? const Color(0xFF3E3A35) : const Color(0xFFEBE6DF),
-                        Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2A2722) : const Color(0xFFDED0C1),
+                        Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFEBE6DF),
+                        Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFDED0C1),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -181,8 +139,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Theme.of(context).brightness == Brightness.dark ? const Color(0xFF3E3A35) : const Color(0xFFEBE6DF),
-                        Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2A2722) : const Color(0xFFDED0C1),
+                        Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFEBE6DF),
+                        Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFDED0C1),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -231,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Upcoming', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: textColor)),
-                  TextButton(onPressed: () {}, child: Text('View All', style: TextStyle(color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562)))),
+                  Text('${upcomingTasks.length} tasks', style: const TextStyle(color: Colors.grey)),
                 ],
               ),
               const SizedBox(height: 16),
@@ -303,53 +261,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           );
         },
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: isDark ? Colors.black54 : Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            )
-          ]
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(Icons.list, color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562)),
-              onPressed: () {},
-            ),
-            GestureDetector(
-              onTap: () => showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => const AddTaskScreen()
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.add, color: Colors.white),
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.person, color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562)),
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
-              },
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -6,6 +6,7 @@ import '../models/task.dart';
 import '../providers/task_provider.dart';
 import '../providers/user_provider.dart';
 import '../widgets/custom_date_picker.dart';
+import '../widgets/add_category_sheet.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final Task? task;
@@ -150,43 +151,13 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   )),
                   ActionChip(
                     label: Icon(Icons.add, size: 18, color: textColor),
-                    onPressed: () {
-                      final controller = TextEditingController();
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            backgroundColor: bgColor,
-                            title: Text('Add Category', style: TextStyle(color: textColor)),
-                            content: TextField(
-                              controller: controller,
-                              style: TextStyle(color: textColor),
-                              decoration: InputDecoration(
-                                hintText: 'Category name',
-                                hintStyle: TextStyle(color: hintColor),
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text('Cancel', style: TextStyle(color: hintColor)),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  if (controller.text.trim().isNotEmpty) {
-                                    userProvider.addCategory(controller.text.trim());
-                                    setState(() {
-                                      _selectedCategory = controller.text.trim();
-                                    });
-                                  }
-                                  Navigator.pop(context);
-                                },
-                                child: Text('Add', style: TextStyle(color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562))),
-                              )
-                            ],
-                          );
-                        }
-                      );
+                    onPressed: () async {
+                      final newCat = await showAddCategorySheet(context);
+                      if (newCat != null && newCat.isNotEmpty) {
+                        setState(() {
+                          _selectedCategory = newCat;
+                        });
+                      }
                     },
                     backgroundColor: isDark ? const Color(0xFF333333) : Colors.white.withValues(alpha: 0.5),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),

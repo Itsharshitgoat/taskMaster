@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/task_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_layout.dart';
 
 void main() {
   runApp(
@@ -40,7 +40,7 @@ class TaskMasterApp extends StatelessWidget {
           ),
           darkTheme: ThemeData(
             primaryColor: const Color(0xFF2E6562),
-            scaffoldBackgroundColor: const Color(0xFF121212),
+            scaffoldBackgroundColor: const Color(0xFF0F172A), // Deeper Midnight Blue
             brightness: Brightness.dark,
             fontFamily: 'Roboto',
             appBarTheme: const AppBarTheme(
@@ -50,7 +50,7 @@ class TaskMasterApp extends StatelessWidget {
             ),
           ),
           themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          home: HomeScreen(),
+          home: const MainLayout(),
           debugShowCheckedModeBanner: false,
         );
       },
