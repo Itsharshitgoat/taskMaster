@@ -3,12 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../providers/theme_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/task_provider.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final ScreenshotController _screenshotController = ScreenshotController();
 
   String _getRank(int completedTasks) {
     if (completedTasks < 5) return 'Beginner';
@@ -34,33 +44,83 @@ class ProfileScreen extends StatelessWidget {
 
   void _editName(BuildContext context, UserProvider userProvider) {
     final controller = TextEditingController(text: userProvider.userName);
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Edit Name'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(hintText: 'Enter your name'),
+        return Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Edit Profile Name', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your name',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    filled: true,
+                    fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.grey.shade100,
+                  ),
+                  autofocus: true,
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (controller.text.trim().isNotEmpty) {
+                        userProvider.updateUserName(controller.text.trim());
+                      }
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Save Name', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                if (controller.text.trim().isNotEmpty) {
-                  userProvider.updateUserName(controller.text.trim());
-                }
-                Navigator.pop(context);
-              },
-              child: const Text('Save'),
-            )
-          ],
+          ),
         );
       }
     );
+  }
+
+  Future<void> _shareProfile() async {
+    try {
+      final image = await _screenshotController.capture();
+      if (image != null) {
+        final directory = await getTemporaryDirectory();
+        final imagePath = await File('${directory.path}/profile.png').create();
+        await imagePath.writeAsBytes(image);
+        await Share.shareXFiles([XFile(imagePath.path)], text: 'Check out my Task Master profile!');
+      }
+    } catch (e) {
+      debugPrint("Error sharing profile: $e");
+    }
   }
 
   @override
@@ -106,39 +166,65 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    GestureDetector(
-                      onTap: () => _pickImage(userProvider),
+                    Screenshot(
+                      controller: _screenshotController,
                       child: Container(
-                        padding: const EdgeInsets.all(4),
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(32),
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562), width: 3),
+                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEBE6DF),
+                          borderRadius: BorderRadius.circular(24),
                         ),
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.orangeAccent,
-                          backgroundImage: userProvider.profileImagePath != null ? FileImage(File(userProvider.profileImagePath!)) : null,
-                          child: userProvider.profileImagePath == null ? const Icon(Icons.person, color: Colors.white, size: 50) : null,
+                        child: Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () => _pickImage(userProvider),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562), width: 3),
+                                ),
+                                child: CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: Colors.orangeAccent,
+                                  backgroundImage: userProvider.profileImagePath != null ? FileImage(File(userProvider.profileImagePath!)) : null,
+                                  child: userProvider.profileImagePath == null ? const Icon(Icons.person, color: Colors.white, size: 50) : null,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(userProvider.userName, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF2E6562))),
+                                IconButton(icon: Icon(Icons.edit, size: 20, color: isDark ? Colors.white70 : Colors.black54), onPressed: () => _editName(context, userProvider)),
+                              ],
+                            ),
+                            Text('Focus Architect • Joined $joinDateFormatted', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
+                            const SizedBox(height: 32),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildStatBox('RANK', rank, isDark),
+                                _buildStatBox('IMPACT', '$totalTasksCount\nTasks', isDark),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            OutlinedButton.icon(
+                              onPressed: _shareProfile,
+                              icon: const Icon(Icons.ios_share),
+                              label: const Text('Share Profile'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: isDark ? Colors.white : const Color(0xFF2E6562),
+                                side: BorderSide(color: isDark ? Colors.white38 : Colors.black26),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            )
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(userProvider.userName, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF2E6562))),
-                        IconButton(icon: Icon(Icons.edit, size: 20, color: isDark ? Colors.white70 : Colors.black54), onPressed: () => _editName(context, userProvider)),
-                      ],
-                    ),
-                    Text('Focus Architect • Joined $joinDateFormatted', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
-                    const SizedBox(height: 32),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildStatBox('RANK', rank, isDark),
-                        _buildStatBox('IMPACT', '$totalTasksCount\nTasks', isDark),
-                      ],
-                    )
                   ],
                 ),
               ),
