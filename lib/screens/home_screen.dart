@@ -8,6 +8,7 @@ import '../widgets/search_bottom_sheet.dart';
 import 'add_task_screen.dart';
 import 'profile_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -17,10 +18,19 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     Future.microtask(() => context.read<TaskProvider>().loadTasks());
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -32,44 +42,78 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        title: Text(
-          'Morning Briefing',
-          style: TextStyle(
-            color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562),
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  hintText: 'Search tasks...',
+                  hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                  border: InputBorder.none,
+                ),
+                onChanged: (val) {
+                  context.read<TaskProvider>().searchTasks(val);
+                },
+              ).animate().fadeIn(duration: const Duration(milliseconds: 300))
+            : Text(
+                'Morning Briefing',
+                style: TextStyle(
+                  color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ).animate().fadeIn(duration: const Duration(milliseconds: 300)),
         actions: [
-          GestureDetector(
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => const SearchBottomSheet(),
-              );
-            },
-            child: Container(
-              margin: const EdgeInsets.only(right: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  SvgPicture.asset('assets/icons/search.svg', width: 16, height: 16, colorFilter: ColorFilter.mode(isDark ? Colors.white70 : Colors.black54, BlendMode.srcIn)),
-                  const SizedBox(width: 8),
-                  Text('Search', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
-                ],
-              ),
+          IconButton(
+            icon: Icon(
+              _isSearching ? Icons.close : Icons.search,
+              color: isDark ? Colors.white70 : Colors.black54,
             ),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _isSearching = false;
+                  _searchController.clear();
+                  context.read<TaskProvider>().searchTasks('');
+                } else {
+                  _isSearching = true;
+                }
+              });
+            },
           )
         ],
       ),
       body: Consumer<TaskProvider>(
         builder: (context, taskProvider, child) {
+          if (_isSearching && _searchController.text.isNotEmpty) {
+            final searchResults = taskProvider.searchResults;
+            if (searchResults.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.search_off, size: 64, color: isDark ? Colors.white38 : Colors.black26),
+                    const SizedBox(height: 16),
+                    Text('No tasks found for "${_searchController.text}"', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54)),
+                  ],
+                ),
+              ).animate().fadeIn(duration: const Duration(milliseconds: 300));
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: searchResults.length,
+              itemBuilder: (context, index) {
+                final task = searchResults[index];
+                return TaskItem(
+                  task: task,
+                  onToggle: () => taskProvider.toggleTaskCompletion(task.id),
+                  onDelete: () => taskProvider.deleteTask(task.id),
+                ).animate().fade(duration: const Duration(milliseconds: 200), delay: Duration(milliseconds: index * 50)).slideY(begin: 0.1, end: 0);
+              },
+            );
+          }
+
           final todayTasks = taskProvider.todayTasks;
           final upcomingTasks = taskProvider.upcomingTasks;
           final completedTasks = taskProvider.completedTasks;

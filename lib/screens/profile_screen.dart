@@ -206,8 +206,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildStatBox('RANK', rank, isDark),
-                                _buildStatBox('IMPACT', '$totalTasksCount\nTasks', isDark),
+                                Expanded(child: _buildStatBox('RANK', rank, isDark)),
+                                const SizedBox(width: 16),
+                                Expanded(child: _buildStatBox('IMPACT', '$totalTasksCount\nTasks', isDark)),
                               ],
                             ),
                             const SizedBox(height: 24),
@@ -282,7 +283,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Center(
                 child: Text('Made with love by Harshit, Anupam and Yash', style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontStyle: FontStyle.italic)),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 100 + MediaQuery.of(context).padding.bottom), // Add extra padding here
             ],
           );
         },
@@ -292,7 +293,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildStatBox(String title, String value, bool isDark) {
     return Container(
-      width: 120,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0F172A) : const Color(0xFFFAF8F5),

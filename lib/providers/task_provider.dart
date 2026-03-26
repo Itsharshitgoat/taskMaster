@@ -33,6 +33,22 @@ class TaskProvider with ChangeNotifier {
     return list.where((t) => t.title.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
   }
 
+  List<Task> _searchResults = [];
+
+  List<Task> get searchResults => _searchResults;
+
+  void searchTasks(String query) {
+    if (query.isEmpty) {
+      _searchResults = [];
+    } else {
+      _searchResults = _tasks.where((t) {
+        return t.title.toLowerCase().contains(query.toLowerCase()) ||
+               (t.category != null && t.category!.toLowerCase().contains(query.toLowerCase()));
+      }).toList();
+    }
+    notifyListeners();
+  }
+
   List<Task> get todayTasks {
     final now = DateTime.now();
     final list = _tasks.where((t) {

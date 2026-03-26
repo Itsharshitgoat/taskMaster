@@ -131,23 +131,49 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               return Wrap(
                 spacing: 8,
                 children: [
-                  ...categories.map((category) => ChoiceChip(
-                    label: Text(category),
-                    selected: _selectedCategory == category,
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) _selectedCategory = category;
-                      });
+                  ...categories.map((category) => GestureDetector(
+                    onLongPress: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Delete Category'),
+                          content: Text('Are you sure you want to delete "$category"?'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                            TextButton(
+                              onPressed: () {
+                                userProvider.removeCategory(category);
+                                if (_selectedCategory == category) {
+                                  setState(() {
+                                    _selectedCategory = null;
+                                  });
+                                }
+                                Navigator.pop(context);
+                              },
+                              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      );
                     },
-                    selectedColor: isDark ? const Color(0xFF2E6562) : const Color(0xFFD4EAE8),
-                    backgroundColor: isDark ? const Color(0xFF333333) : Colors.white.withValues(alpha: 0.5),
-                    labelStyle: TextStyle(
-                      color: _selectedCategory == category
-                          ? (isDark ? Colors.white : const Color(0xFF2E6562))
-                          : textColor,
-                      fontWeight: FontWeight.w500,
+                    child: ChoiceChip(
+                      label: Text(category),
+                      selected: _selectedCategory == category,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) _selectedCategory = category;
+                        });
+                      },
+                      selectedColor: isDark ? const Color(0xFF2E6562) : const Color(0xFFD4EAE8),
+                      backgroundColor: isDark ? const Color(0xFF333333) : Colors.white.withValues(alpha: 0.5),
+                      labelStyle: TextStyle(
+                        color: _selectedCategory == category
+                            ? (isDark ? Colors.white : const Color(0xFF2E6562))
+                            : textColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
                     ),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
                   )),
                   ActionChip(
                     label: Icon(Icons.add, size: 18, color: textColor),

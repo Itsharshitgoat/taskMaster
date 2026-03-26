@@ -13,7 +13,7 @@ void main() {
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
 
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('App loads smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(
       MultiProvider(
@@ -25,5 +25,6 @@ void main() {
         child: const TaskMasterApp(),
       ),
     );
+    await tester.pumpAndSettle();
   });
 }

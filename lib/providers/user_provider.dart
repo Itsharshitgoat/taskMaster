@@ -45,4 +45,12 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> removeCategory(String category) async {
+    if (_categories.contains(category)) {
+      _categories.remove(category);
+      await _prefsService.setCategories(_categories);
+      notifyListeners();
+    }
+  }
 }
