@@ -19,28 +19,45 @@ class TaskProvider with ChangeNotifier {
 
   List<Task> get tasks => _tasks;
 
+  String _searchQuery = '';
+
+  String get searchQuery => _searchQuery;
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  List<Task> _filterSearch(List<Task> list) {
+    if (_searchQuery.isEmpty) return list;
+    return list.where((t) => t.title.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+  }
+
   List<Task> get todayTasks {
     final now = DateTime.now();
-    return _tasks.where((t) {
+    final list = _tasks.where((t) {
       if (t.isCompleted) return false;
-      if (t.dueDate == null) return true; // Treat tasks without due date as today's or just upcoming? Based on UI, there's "Today" and "Upcoming". Let's say if due date is today or null, it's today.
+      if (t.dueDate == null) return true;
       return t.dueDate!.year == now.year && t.dueDate!.month == now.month && t.dueDate!.day == now.day;
     }).toList();
+    return _filterSearch(list);
   }
 
   List<Task> get upcomingTasks {
     final now = DateTime.now();
-    return _tasks.where((t) {
+    final list = _tasks.where((t) {
       if (t.isCompleted) return false;
       if (t.dueDate == null) return false;
       final today = DateTime(now.year, now.month, now.day);
       final taskDate = DateTime(t.dueDate!.year, t.dueDate!.month, t.dueDate!.day);
       return taskDate.isAfter(today);
     }).toList();
+    return _filterSearch(list);
   }
 
   List<Task> get completedTasks {
-    return _tasks.where((t) => t.isCompleted).toList();
+    final list = _tasks.where((t) => t.isCompleted).toList();
+    return _filterSearch(list);
   }
 
   Future<void> loadTasks() async {

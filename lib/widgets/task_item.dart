@@ -5,19 +5,20 @@ import '../models/task.dart';
 class TaskItem extends StatelessWidget {
   final Task task;
   final VoidCallback onToggle;
-  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const TaskItem({
     Key? key,
     required this.task,
     required this.onToggle,
-    required this.onEdit,
     required this.onDelete,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     return Dismissible(
       key: Key(task.id),
       direction: DismissDirection.endToStart,
@@ -29,7 +30,6 @@ class TaskItem extends StatelessWidget {
       ),
       onDismissed: (_) => onDelete(),
       child: ListTile(
-        onTap: onEdit,
         leading: GestureDetector(
           onTap: onToggle,
           child: Container(
@@ -54,7 +54,7 @@ class TaskItem extends StatelessWidget {
             fontSize: 16,
             fontWeight: FontWeight.w500,
             decoration: task.isCompleted ? TextDecoration.lineThrough : null,
-            color: task.isCompleted ? Colors.grey : null,
+            color: task.isCompleted ? Colors.grey : textColor,
           ),
         ),
         subtitle: Row(

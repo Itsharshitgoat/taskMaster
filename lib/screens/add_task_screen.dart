@@ -63,10 +63,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF2A2A2A) : const Color(0xFFEBE5DF);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final hintColor = isDark ? Colors.white54 : Colors.black54;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFFEBE5DF),
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -91,19 +96,21 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           const SizedBox(height: 32),
           Text(
             widget.task == null ? 'New Task' : 'Edit Task',
-            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black87),
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: textColor),
           ),
           const SizedBox(height: 8),
-          const Text('What are we accomplishing today?', style: TextStyle(color: Colors.black54, fontSize: 16)),
+          Text('What are we accomplishing today?', style: TextStyle(color: hintColor, fontSize: 16)),
           const SizedBox(height: 32),
-          const Text('TASK NAME', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.black54)),
+          Text('TASK NAME', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: hintColor)),
           const SizedBox(height: 8),
           TextField(
             controller: _titleController,
+            style: TextStyle(color: textColor),
             decoration: InputDecoration(
               hintText: 'e.g. Design Studio Moodboard',
+              hintStyle: TextStyle(color: hintColor),
               filled: true,
-              fillColor: Colors.white.withOpacity(0.5),
+              fillColor: isDark ? const Color(0xFF333333) : Colors.white.withValues(alpha: 0.5),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
@@ -112,7 +119,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text('CATEGORY', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.black54)),
+          Text('CATEGORY', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: hintColor)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -125,18 +132,20 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                     if (selected) _selectedCategory = category;
                   });
                 },
-                selectedColor: const Color(0xFFD4EAE8),
-                backgroundColor: Colors.white.withOpacity(0.5),
+                selectedColor: isDark ? const Color(0xFF2E6562) : const Color(0xFFD4EAE8),
+                backgroundColor: isDark ? const Color(0xFF333333) : Colors.white.withValues(alpha: 0.5),
                 labelStyle: TextStyle(
-                  color: _selectedCategory == category ? const Color(0xFF2E6562) : Colors.black87,
+                  color: _selectedCategory == category
+                      ? (isDark ? Colors.white : const Color(0xFF2E6562))
+                      : textColor,
                   fontWeight: FontWeight.w500,
                 ),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
               )),
               ActionChip(
-                label: const Icon(Icons.add, size: 18),
+                label: Icon(Icons.add, size: 18, color: textColor),
                 onPressed: () {},
-                backgroundColor: Colors.white.withOpacity(0.5),
+                backgroundColor: isDark ? const Color(0xFF333333) : Colors.white.withValues(alpha: 0.5),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
               )
             ],
@@ -145,25 +154,25 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.5),
+              color: isDark ? const Color(0xFF333333) : Colors.white.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
-                  child: const Icon(Icons.calendar_today, size: 20, color: Color(0xFF2E6562)),
+                  decoration: BoxDecoration(color: isDark ? const Color(0xFF1E1E1E) : Colors.white, borderRadius: BorderRadius.circular(10)),
+                  child: Icon(Icons.calendar_today, size: 20, color: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562)),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Set Due Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text('Set Due Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor)),
                       Text(
                         _selectedDate != null ? DateFormat('MMM d, yyyy').format(_selectedDate!) : 'Not set',
-                        style: const TextStyle(color: Colors.black54),
+                        style: TextStyle(color: hintColor),
                       ),
                     ],
                   ),
@@ -189,7 +198,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                       });
                     }
                   },
-                  activeColor: const Color(0xFF2E6562),
+                  activeColor: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562),
                 )
               ],
             ),
@@ -201,7 +210,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             child: ElevatedButton(
               onPressed: _saveTask,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2E6562),
+                backgroundColor: isDark ? const Color(0xFF4FA8A4) : const Color(0xFF2E6562),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
               child: Text(
